@@ -24,18 +24,32 @@ const reviewRouter = require("./routes/review.js");
 const { connect } = require("http2");
 const userRouter = require("./routes/user.js");
 
-const MONGO_URL = process.env.ATLASDB_URL || "mongodb://127.0.0.1:27017/wanderlust";
+const MONGO_URL =
+  process.env.ATLASDB_URL ||
+  (process.env.NODE_ENV !== "production"
+    ? "mongodb://127.0.0.1:27017/wanderlust"
+    : null);
 
 main()
-  .then(() => {
-    console.log("connected to DB");
+  .then((connected) => {
+    if (connected) {
+      console.log("connected to DB");
+    }
   })
   .catch((err) => {
     console.log(err);
   });
 
 async function main() {
-  await mongoose.connect(MONGO_URL);
+  if (!MONGO_URL) {
+    console.warn("ATLASDB_URL is missing. Database routes will fail until it is configured.");
+    return false;
+  }
+
+  await mongoose.connect(MONGO_URL, {
+    serverSelectionTimeoutMS: 5000,
+  });
+  return true;
 }
 
 app.set("view engine", "ejs");
