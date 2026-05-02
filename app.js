@@ -24,7 +24,7 @@ const reviewRouter = require("./routes/review.js");
 const { connect } = require("http2");
 const userRouter = require("./routes/user.js");
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
+const MONGO_URL = process.env.ATLASDB_URL || "mongodb://127.0.0.1:27017/wanderlust";
 
 main()
   .then(() => {
@@ -47,7 +47,7 @@ app.use(express.static(path.join(__dirname,"public")));
 
 
 const sessionOptions ={
-  secret:"mysupersecretcode",
+  secret: process.env.SECRET || "mysupersecretcode",
   resave:false,
   saveUninitialized:true,
   cookie:{
@@ -194,6 +194,12 @@ app.use((err,req,res,next)=>{
   res.send("something went wrong!");
 });
 
-app.listen(8080, () => {
-  console.log("server is listening to port 8080");
-});
+const PORT = process.env.PORT || 8080;
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`server is listening to port ${PORT}`);
+  });
+}
+
+module.exports = app;
